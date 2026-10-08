@@ -5,6 +5,10 @@
 ### Added
 
 - Added `web/anysearch` and AnySearch login metadata ([#9726](https://github.com/can1357/oh-my-pi/pull/9726) by [@anysearch-ai](https://github.com/anysearch-ai)).
+### Breaking Changes
+
+- `googleAntigravityModelManagerOptions` takes `resolveAccounts` instead of `oauthToken`, and `fetchAntigravityDiscoveryModels` returns a roster or credential-rejection result instead of a bare list ([#14924](https://github.com/can1357/oh-my-pi/issues/14924)).
+
 ## [18.8.4] - 2026-10-08
 
 ### Fixed
