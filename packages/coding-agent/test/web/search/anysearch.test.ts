@@ -3,10 +3,11 @@ import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
 import { AuthStorage } from "@oh-my-pi/pi-ai";
-import * as aiStream from "@oh-my-pi/pi-ai/stream";
+import * as envApiKey from "@oh-my-pi/pi-ai/env-api-key";
 import type { FetchImpl } from "@oh-my-pi/pi-ai/types";
 import { ModelRegistry } from "@oh-my-pi/pi-coding-agent/config/model-registry";
 import { resetSettingsForTest, Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
+import { cfgRetryFallbackChains } from "@oh-my-pi/pi-coding-agent/session/settings";
 import { runSearchQuery } from "@oh-my-pi/pi-coding-agent/web/search";
 import * as providerRegistry from "@oh-my-pi/pi-coding-agent/web/search/provider";
 import { searchAnySearch } from "@oh-my-pi/pi-coding-agent/web/search/providers/anysearch";
@@ -72,10 +73,10 @@ describe("AnySearch provider", () => {
 	async function roleContext(primary?: string, fallbacks: string[] | null = []) {
 		const settings = await Settings.init({ inMemory: true });
 		if (primary) settings.setModelRole("web", primary);
-		if (fallbacks !== null) settings.set("retry.fallbackChains", { web: fallbacks });
+		if (fallbacks !== null) cfgRetryFallbackChains.set(settings, { web: fallbacks });
 		const authStorage = createInMemoryAuthStorage();
 		openAuthStorages.push(authStorage);
-		vi.spyOn(aiStream, "getEnvApiKey").mockReturnValue(undefined);
+		vi.spyOn(envApiKey, "getEnvApiKey").mockReturnValue(undefined);
 		const modelRegistry = new ModelRegistry(authStorage, undefined, { settings });
 		return { authStorage, modelRegistry };
 	}
@@ -205,7 +206,7 @@ describe("AnySearch provider", () => {
 	});
 
 	it("preserves a login credential written while anonymous registration is in flight", async () => {
-		vi.spyOn(aiStream, "getEnvApiKey").mockReturnValue(undefined);
+		vi.spyOn(envApiKey, "getEnvApiKey").mockReturnValue(undefined);
 		const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "omp-anysearch-auth-race-"));
 		const dbPath = path.join(tempDir, "agent.db");
 		let primaryStorage: AuthStorage | undefined;

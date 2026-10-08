@@ -1,10 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
 import { stripVTControlCharacters } from "node:util";
-import * as aiStream from "@oh-my-pi/pi-ai/stream";
+import * as envApiKey from "@oh-my-pi/pi-ai/env-api-key";
 import * as modelCache from "@oh-my-pi/pi-catalog/model-cache";
 import { resetSettingsForTest, Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
 import { __resetDirsFromEnvForTests, setAgentDir, TempDir } from "@oh-my-pi/pi-utils";
 import { runSearchCommand } from "../../../src/cli/web-search-cli";
+
+import { cfgRetryFallbackChains } from "@oh-my-pi/pi-coding-agent/session/settings";
 
 const originalAgentDir = process.env.PI_CODING_AGENT_DIR;
 const originalOmpProfile = process.env.OMP_PROFILE;
@@ -56,7 +58,7 @@ beforeEach(async () => {
 	setAgentDir(tempAgentDir.path());
 	const settings = await Settings.init({ inMemory: true, cwd: tempAgentDir.path() });
 	settings.setModelRole("web", "web/startpage");
-	settings.set("retry.fallbackChains", { web: [] });
+	cfgRetryFallbackChains.set(settings, { web: [] });
 });
 
 afterEach(async () => {
@@ -67,6 +69,8 @@ afterEach(async () => {
 	restoreEnv("OMP_PROFILE", originalOmpProfile);
 	restoreEnv("PI_PROFILE", originalPiProfile);
 	__resetDirsFromEnvForTests();
+	// runSearchCommand opens <agentDir>/models.db; Windows cannot delete an open database.
+	modelCache.closeModelCache();
 	if (tempAgentDir) {
 		await tempAgentDir.remove();
 		tempAgentDir = undefined;
@@ -75,7 +79,7 @@ afterEach(async () => {
 
 describe("runSearchCommand model role settings", () => {
 	it("selects and renders AnySearch through --model web/anysearch", async () => {
-		vi.spyOn(aiStream, "getEnvApiKey").mockReturnValue(undefined);
+		vi.spyOn(envApiKey, "getEnvApiKey").mockReturnValue(undefined);
 		vi.spyOn(globalThis, "fetch").mockResolvedValue(
 			Response.json({
 				code: 0,

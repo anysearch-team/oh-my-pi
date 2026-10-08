@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "bun:test";
 import { getProviderDefinition } from "@oh-my-pi/pi-ai/registry";
-import { getEnvApiKey } from "@oh-my-pi/pi-ai/stream";
+import { getEnvApiKey } from "@oh-my-pi/pi-ai/env-api-key";
 
 const originalAnySearchApiKey = Bun.env.ANYSEARCH_API_KEY;
 const loginAnySearch = getProviderDefinition("anysearch")?.login;
